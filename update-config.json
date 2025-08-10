@@ -1,0 +1,66 @@
+{
+  "updateSystem": {
+    "enabled": true,
+    "checkInterval": 86400000,
+    "checkOnAppStart": true,
+    "checkOnPageLoad": true,
+    "allowSkipUpdate": true,
+    "forceUpdateOnCritical": true
+  },
+  "servers": {
+    "primary": {
+      "versionUrl": "https://your-domain.com/app-version.json",
+      "fallbackUrl": "https://backup-domain.com/app-version.json",
+      "timeout": 10000
+    },
+    "cdn": {
+      "baseUrl": "https://github.com/YOUR_USERNAME/distributor-android-app/releases/download",
+      "fallbackUrl": "https://your-domain.com/downloads"
+    }
+  },
+  "notifications": {
+    "showUpdateDialog": true,
+    "showDownloadProgress": true,
+    "showInstallPrompt": true,
+    "customDialogTheme": "Material3"
+  },
+  "security": {
+    "verifyApkSignature": true,
+    "checkFileIntegrity": true,
+    "allowedDomains": [
+      "github.com",
+      "your-domain.com",
+      "backup-domain.com"
+    ]
+  },
+  "ui": {
+    "updateDialogTitle": "🎉 Update Available!",
+    "updateDialogMessage": "A new version is available with improvements and bug fixes.",
+    "downloadButtonText": "Update Now",
+    "laterButtonText": "Later",
+    "skipButtonText": "Skip This Version",
+    "progressTitle": "Downloading Update...",
+    "installPromptTitle": "Install Update",
+    "installPromptMessage": "The update has been downloaded. Would you like to install it now?"
+  },
+  "versions": {
+    "current": {
+      "versionCode": 1,
+      "versionName": "1.0.0",
+      "buildDate": "2024-01-01",
+      "minSdkVersion": 21,
+      "targetSdkVersion": 34
+    },
+    "supported": {
+      "minVersionCode": 1,
+      "maxVersionCode": 999,
+      "supportedAndroidVersions": [21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34]
+    }
+  },
+  "debug": {
+    "enableLogging": true,
+    "logLevel": "INFO",
+    "testMode": false,
+    "mockUpdateServer": false
+  }
+}
