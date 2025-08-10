@@ -19,12 +19,12 @@ echo.
 
 REM Update version in build.gradle
 echo Updating version in build.gradle...
-powershell -Command "(Get-Content 'app/build.gradle') -replace 'versionCode \d+', 'versionCode %VERSION_CODE%' | Set-Content 'app/build.gradle'"
-powershell -Command "(Get-Content 'app/build.gradle') -replace 'versionName \"[^\"]*\"', 'versionName \"%VERSION_NAME%\"' | Set-Content 'app/build.gradle'"
+powershell -Command "(Get-Content 'app/build.gradle') -replace 'versionCode \d+', 'versionCode %VERSION_CODE%' | Out-File -FilePath 'app/build.gradle' -Encoding UTF8"
+powershell -Command "(Get-Content 'app/build.gradle') -replace 'versionName \"[^\"]*\"', 'versionName \"%VERSION_NAME%\"' | Out-File -FilePath 'app/build.gradle' -Encoding UTF8"
 
 REM Update version in MainActivity.kt
 echo Updating version in MainActivity.kt...
-powershell -Command "(Get-Content 'app/src/main/java/com/yourcompany/distributor/MainActivity.kt') -replace 'private val currentVersionCode = \d+', 'private val currentVersionCode = %VERSION_CODE%' | Set-Content 'app/src/main/java/com/yourcompany/distributor/MainActivity.kt'"
+powershell -Command "(Get-Content 'app/src/main/java/com/yourcompany/distributor/MainActivity.kt') -replace 'private val currentVersionCode = \d+', 'private val currentVersionCode = %VERSION_CODE%' | Out-File -FilePath 'app/src/main/java/com/yourcompany/distributor/MainActivity.kt' -Encoding UTF8"
 
 REM Clean previous builds
 echo Cleaning previous builds...
