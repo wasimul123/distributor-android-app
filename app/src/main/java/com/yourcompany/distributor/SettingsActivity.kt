@@ -1,6 +1,9 @@
 package com.yourcompany.distributor
 
-import android.content.Intent
+import android.app.DownloadManager
+import android.content.Context
+import android.net.Uri
+import android.os.Environment
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
@@ -13,6 +16,7 @@ import androidx.activity.ComponentActivity
 import org.json.JSONObject
 import java.net.URL
 import kotlinx.coroutines.*
+import android.app.AlertDialog
 
 class SettingsActivity : ComponentActivity() {
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
@@ -57,10 +61,19 @@ class SettingsActivity : ComponentActivity() {
                     }
                     val versionCode = versionInfo.getInt("versionCode")
                     val versionName = versionInfo.getString("versionName")
+                    val downloadUrl = versionInfo.getString("downloadUrl")
                     // MainActivity currentVersionCode is 2; mirror logic here lightly
                     val isUpdate = versionCode > 2
                     if (isUpdate) {
                         updatesStatus.text = "Update available: v$versionName"
+                        AlertDialog.Builder(this@SettingsActivity)
+                            .setTitle("Update available")
+                            .setMessage("Version $versionName is available. Download and install now?")
+                            .setPositiveButton("Update Now") { _, _ ->
+                                downloadUpdate(downloadUrl)
+                            }
+                            .setNegativeButton("Later", null)
+                            .show()
                     } else {
                         updatesStatus.text = "You're up to date"
                     }
@@ -68,6 +81,24 @@ class SettingsActivity : ComponentActivity() {
                     updatesStatus.text = "Failed to check updates"
                 }
             }
+        }
+
+    }
+
+    private fun downloadUpdate(url: String) {
+        try {
+            val request = DownloadManager.Request(Uri.parse(url))
+            request.setTitle("Distributor App Update")
+            request.setDescription("Downloading latest version...")
+            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "distributor-update.apk")
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+
+            val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            downloadManager.enqueue(request)
+
+            Toast.makeText(this, "Downloading update...", Toast.LENGTH_LONG).show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "Failed to start download", Toast.LENGTH_SHORT).show()
         }
     }
 
