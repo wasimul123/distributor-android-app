@@ -9,7 +9,7 @@ import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.preference.PreferenceManager
+// Removed androidx.preference to avoid extra dependency; using standard SharedPreferences
 import org.json.JSONObject
 import java.net.URL
 import kotlinx.coroutines.*
@@ -21,7 +21,7 @@ class SettingsActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
-        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        val prefs = getSharedPreferences("app_settings", MODE_PRIVATE)
 
         val apiPassword = findViewById<EditText>(R.id.apiPassword)
         val adminPassword = findViewById<EditText>(R.id.adminPassword)
