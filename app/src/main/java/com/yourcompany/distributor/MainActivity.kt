@@ -53,7 +53,7 @@ class MainActivity : ComponentActivity() {
     private var downloadReceiver: BroadcastReceiver? = null
     private val updateUrl = "https://stellar-bienenstich-f651bf.netlify.app/app-version.json"
     private val apkDownloadUrl = "https://github.com/yourusername/distributor-app/releases/download/v1.1.0/distributor-latest.apk"
-    private val currentVersionCode = 1 // Update this with each release
+    private val currentVersionCode = 2 // Update this with each release
     private var updateCheckDone = false // Prevent multiple update checks
 
     companion object {
