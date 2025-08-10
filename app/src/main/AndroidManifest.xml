@@ -25,19 +25,18 @@
 
     <application
         android:allowBackup="true"
-        android:label="Distributor Management"
-        android:supportsRtl="true"
-        android:theme="@style/Theme.Material3.DayNight.NoActionBar">
-        
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
+        android:label="Distributor"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true">
+        <activity android:name=".SettingsActivity" />
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.yourcompany.distributor.fileprovider"
@@ -47,7 +46,6 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
-        
     </application>
 </manifest>
 

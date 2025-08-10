@@ -69,6 +69,7 @@ class MainActivity : ComponentActivity() {
         val loader = findViewById<View>(R.id.loader)
         webView = findViewById(R.id.webView)
         val refreshButton = findViewById<ImageButton>(R.id.refreshButton)
+        val settingsButton = findViewById<ImageButton>(R.id.settingsButton)
 
         // Initialize activity result launchers
         setupActivityResultLaunchers()
@@ -163,16 +164,7 @@ class MainActivity : ComponentActivity() {
                 loader.visibility = View.GONE
                 super.onPageFinished(view, url)
                 
-                // Check for updates after the page has loaded successfully
-                if (!updateCheckDone) {
-                    updateCheckDone = true
-                    try {
-                        checkForUpdates()
-                    } catch (e: Exception) {
-                        // If update check fails, continue without auto-update
-                        Log.e("MainActivity", "Failed to check for updates: ${e.message}")
-                    }
-                }
+                // No auto update prompt on page load. Badge-only check happens in onResume.
             }
 
             @Suppress("DEPRECATION")
@@ -197,6 +189,13 @@ class MainActivity : ComponentActivity() {
             webView.reload()
         }
 
+        // Open settings screen
+        settingsButton.setOnClickListener {
+            try {
+                startActivity(Intent(this, SettingsActivity::class.java))
+            } catch (_: Exception) { }
+        }
+
         // Load the URL
         loader.visibility = View.VISIBLE
         webView.loadUrl(url)
@@ -212,6 +211,29 @@ class MainActivity : ComponentActivity() {
                 }
             }
         })
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Silent update check to toggle settings badge
+        refreshUpdateBadge()
+    }
+
+    private fun refreshUpdateBadge() {
+        val badgeView = findViewById<View>(R.id.settingsBadge)
+        updateScope.launch {
+            try {
+                val versionInfo = withContext(Dispatchers.IO) { checkServerVersion() }
+                if (versionInfo != null && versionInfo.versionCode > currentVersionCode) {
+                    badgeView?.visibility = View.VISIBLE
+                } else {
+                    badgeView?.visibility = View.GONE
+                }
+            } catch (_: Exception) {
+                // On error, hide badge to avoid false positives
+                badgeView?.visibility = View.GONE
+            }
+        }
     }
 
     private fun setupActivityResultLaunchers() {

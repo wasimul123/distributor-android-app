@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Top Toolbar with Refresh Button -->
+    <!-- Top Toolbar with Refresh and Settings Buttons -->
     <LinearLayout
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -34,6 +34,33 @@
             android:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="8dp" />
+
+        <!-- Settings button with badge -->
+        <FrameLayout
+            android:layout_width="40dp"
+            android:layout_height="40dp">
+
+            <ImageButton
+                android:id="@+id/settingsButton"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_manage"
+                android:contentDescription="Settings"
+                android:tint="@android:color/white"
+                android:scaleType="centerInside"
+                android:padding="8dp" />
+
+            <View
+                android:id="@+id/settingsBadge"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_gravity="end|top"
+                android:translationX="-4dp"
+                android:translationY="4dp"
+                android:background="@android:color/holo_red_light"
+                android:visibility="gone" />
+        </FrameLayout>
 
     </LinearLayout>
 
