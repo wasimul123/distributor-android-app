@@ -52,33 +52,37 @@ class SettingsActivity : ComponentActivity() {
             scope.launch {
                 try {
                     val versionInfo = withContext(Dispatchers.IO) {
-                        val url = URL("https://stellar-bienenstich-f651bf.netlify.app/app-version.json")
+                        val url = URL("https://stellar-bienenstitch-f651bf.netlify.app/app-version.json")
                         val connection = url.openConnection()
                         connection.connectTimeout = 10000
                         connection.readTimeout = 10000
                         val response = connection.getInputStream().bufferedReader().use { it.readText() }
                         JSONObject(response)
                     }
-                    val versionCode = versionInfo.getInt("versionCode")
-                    val versionName = versionInfo.getString("versionName")
-                    val downloadUrl = versionInfo.getString("downloadUrl")
-                    // MainActivity currentVersionCode is 2; mirror logic here lightly
-                    val isUpdate = versionCode > 2
+                    val versionCode = versionInfo.optInt("versionCode", 0)
+                    val versionName = versionInfo.optString("versionName", "")
+                    val downloadUrl = versionInfo.optString("downloadUrl", "")
+
+                    val currentVersionCode = 8 // keep in sync with MainActivity
+                    val isUpdate = versionCode > currentVersionCode && downloadUrl.isNotBlank()
+
                     if (isUpdate) {
-                        updatesStatus.text = "Update available: v$versionName"
+                        updatesStatus.text = "Update found: v$versionName. Click Yes to proceed."
                         AlertDialog.Builder(this@SettingsActivity)
-                            .setTitle("Update available")
-                            .setMessage("Version $versionName is available. Download and install now?")
-                            .setPositiveButton("Update Now") { _, _ ->
+                            .setTitle("Update found")
+                            .setMessage("Version $versionName is available. Do you want to download and install it now?")
+                            .setPositiveButton("Yes") { _, _ ->
                                 downloadUpdate(downloadUrl)
                             }
-                            .setNegativeButton("Later", null)
+                            .setNegativeButton("No", null)
                             .show()
                     } else {
-                        updatesStatus.text = "You're up to date"
+                        updatesStatus.text = "No updates found"
+                        Toast.makeText(this@SettingsActivity, "No updates found", Toast.LENGTH_SHORT).show()
                     }
                 } catch (e: Exception) {
-                    updatesStatus.text = "Failed to check updates"
+                    updatesStatus.text = "No updates found"
+                    Toast.makeText(this@SettingsActivity, "No updates found", Toast.LENGTH_SHORT).show()
                 }
             }
         }

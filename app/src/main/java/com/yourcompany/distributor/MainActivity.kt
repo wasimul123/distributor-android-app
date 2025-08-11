@@ -51,9 +51,9 @@ class MainActivity : ComponentActivity() {
     private val updateScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var downloadId: Long = -1
     private var downloadReceiver: BroadcastReceiver? = null
-    private val updateUrl = "https://stellar-bienenstich-f651bf.netlify.app/app-version.json"
-    private val apkDownloadUrl = "https://github.com/wasimul123/distributor-android-app/releases/download/v1.2.0/app-release-unsigned.apk"
-    private val currentVersionCode = 3 // Update this with each release
+    private val updateUrl = "https://stellar-bienenstitch-f651bf.netlify.app/app-version.json"
+    private val apkDownloadUrl = "https://github.com/wasimul123/distributor-android-app/releases/download/v1.2.5/app-release.apk"
+    private val currentVersionCode = 8 // Update this with each release
     private var updateCheckDone = false // Prevent multiple update checks
 
     companion object {
@@ -82,7 +82,7 @@ class MainActivity : ComponentActivity() {
             Log.e("MainActivity", "Failed to setup update receiver: ${e.message}")
         }
 
-        // Production URL - Netlify hosted app (auto-updates)
+        // Production URL - Netlify hosted app (correct domain)
         val url = "https://stellar-bienenstitch-f651bf.netlify.app/"
 
         // Configure WebView settings
@@ -196,6 +196,14 @@ class MainActivity : ComponentActivity() {
             } catch (_: Exception) { }
         }
 
+        // Add long press to settings button for manual update check
+        settingsButton.setOnLongClickListener {
+            Toast.makeText(this, "Checking for updates...", Toast.LENGTH_SHORT).show()
+            updateCheckDone = false // Reset flag to allow update check
+            checkForUpdates()
+            true
+        }
+
         // Load the URL
         loader.visibility = View.VISIBLE
         webView.loadUrl(url)
@@ -215,8 +223,14 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Silent update check to toggle settings badge
-        refreshUpdateBadge()
+        // Check for updates and show dialog if available
+        if (!updateCheckDone) {
+            checkForUpdates()
+            updateCheckDone = true
+        } else {
+            // Silent update check to toggle settings badge
+            refreshUpdateBadge()
+        }
     }
 
     private fun refreshUpdateBadge() {
@@ -428,12 +442,14 @@ class MainActivity : ComponentActivity() {
                     try {
                         val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
                         if (id == downloadId) {
+                            Log.d("MainActivity", "Download completed for ID: $id")
                             Toast.makeText(this@MainActivity, "Update downloaded! Installing...", Toast.LENGTH_SHORT).show()
                             installApk()
                         }
                     } catch (e: Exception) {
+                        Log.e("MainActivity", "Error in download receiver: ${e.message}")
                         // If installation fails, show error
-                        Toast.makeText(this@MainActivity, "Failed to process update", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@MainActivity, "Failed to process update: ${e.message}", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -450,14 +466,28 @@ class MainActivity : ComponentActivity() {
     private fun checkForUpdates() {
         updateScope.launch {
             try {
+                Log.d("MainActivity", "Checking for updates...")
                 val versionInfo = withContext(Dispatchers.IO) {
                     checkServerVersion()
                 }
                 
-                if (versionInfo != null && versionInfo.versionCode > currentVersionCode) {
-                    showUpdateDialog(versionInfo)
+                if (versionInfo != null) {
+                    Log.d("MainActivity", "Server version: ${versionInfo.versionCode}, Current version: $currentVersionCode")
+                    if (versionInfo.versionCode > currentVersionCode) {
+                        Log.d("MainActivity", "Update available! Showing dialog...")
+                        showUpdateDialog(versionInfo)
+                    } else {
+                        Log.d("MainActivity", "No update available")
+                        // Show toast for manual update checks
+                        if (!updateCheckDone) {
+                            Toast.makeText(this@MainActivity, "No updates available", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } else {
+                    Log.d("MainActivity", "Failed to get version info from server")
                 }
             } catch (e: Exception) {
+                Log.e("MainActivity", "Error checking for updates: ${e.message}")
                 // Silently fail - don't show error for update check
                 // User can still use the app normally
             }
@@ -466,12 +496,20 @@ class MainActivity : ComponentActivity() {
 
     private suspend fun checkServerVersion(): VersionInfo? {
         return try {
-            val url = URL(updateUrl)
+            Log.d("MainActivity", "Fetching version from: $updateUrl")
+            // Bypass cached responses with a timestamp query param
+            val cacheBustUrl = android.net.Uri.parse(updateUrl)
+                .buildUpon()
+                .appendQueryParameter("t", System.currentTimeMillis().toString())
+                .build()
+                .toString()
+            val url = URL(cacheBustUrl)
             val connection = url.openConnection()
             connection.connectTimeout = 10000 // 10 seconds
             connection.readTimeout = 10000
             
             val response = connection.getInputStream().bufferedReader().use { it.readText() }
+            Log.d("MainActivity", "Server response: $response")
             val json = JSONObject(response)
             
             VersionInfo(
@@ -481,6 +519,7 @@ class MainActivity : ComponentActivity() {
                 releaseNotes = json.getString("releaseNotes")
             )
         } catch (e: Exception) {
+            Log.e("MainActivity", "Error fetching version info: ${e.message}")
             // If we can't check for updates, silently fail
             // This ensures the app still works without internet
             null
@@ -496,7 +535,12 @@ class MainActivity : ComponentActivity() {
             "Would you like to download and install the update?"
         )
         builder.setPositiveButton("Update Now") { _, _ ->
-            downloadUpdate(versionInfo.downloadUrl)
+            try {
+                downloadUpdate(versionInfo.downloadUrl)
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Error starting download: ${e.message}")
+                Toast.makeText(this, "Failed to start download: ${e.message}", Toast.LENGTH_LONG).show()
+            }
         }
         builder.setNegativeButton("Later") { dialog, _ ->
             dialog.dismiss()
@@ -507,6 +551,7 @@ class MainActivity : ComponentActivity() {
 
     private fun downloadUpdate(url: String) {
         try {
+            Log.d("MainActivity", "Starting download from: $url")
             val request = DownloadManager.Request(Uri.parse(url))
             request.setTitle("Distributor App Update")
             request.setDescription("Downloading latest version...")
@@ -516,17 +561,21 @@ class MainActivity : ComponentActivity() {
             val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
             downloadId = downloadManager.enqueue(request)
 
+            Log.d("MainActivity", "Download started with ID: $downloadId")
             Toast.makeText(this, "Downloading update...", Toast.LENGTH_LONG).show()
         } catch (e: Exception) {
-            Toast.makeText(this, "Failed to start download", Toast.LENGTH_SHORT).show()
+            Log.e("MainActivity", "Failed to start download: ${e.message}")
+            Toast.makeText(this, "Failed to start download: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun installApk() {
         try {
+            Log.d("MainActivity", "Attempting to install APK...")
             val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "distributor-update.apk")
             
             if (file.exists()) {
+                Log.d("MainActivity", "APK file found, size: ${file.length()} bytes")
                 val intent = Intent(Intent.ACTION_VIEW)
                 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -539,9 +588,14 @@ class MainActivity : ComponentActivity() {
                 
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 startActivity(intent)
+                Log.d("MainActivity", "Install intent started")
+            } else {
+                Log.e("MainActivity", "APK file not found at: ${file.absolutePath}")
+                Toast.makeText(this, "APK file not found", Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
-            Toast.makeText(this, "Failed to install update", Toast.LENGTH_SHORT).show()
+            Log.e("MainActivity", "Failed to install update: ${e.message}")
+            Toast.makeText(this, "Failed to install update: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 

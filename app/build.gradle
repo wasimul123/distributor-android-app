@@ -3,6 +3,15 @@ plugins {
   id 'org.jetbrains.kotlin.android'
 }
 
+import java.util.Properties
+import java.io.FileInputStream
+
+def keystorePropertiesFile = file("keystore.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+  keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
   namespace 'com.yourcompany.distributor'
   compileSdk 34
@@ -11,13 +20,29 @@ android {
     applicationId 'com.yourcompany.distributor'
     minSdk 21
     targetSdk 34
-    versionCode 3
-    versionName '1.2.0'
+    versionCode 8
+    versionName '1.2.5'
+  }
+
+  signingConfigs {
+    release {
+      if (keystoreProperties['storeFile']) {
+        storeFile file(keystoreProperties['storeFile'])
+        storePassword keystoreProperties['storePassword']
+        keyAlias keystoreProperties['keyAlias']
+        keyPassword keystoreProperties['keyPassword']
+        v1SigningEnabled true
+        v2SigningEnabled true
+      }
+    }
   }
 
   buildTypes {
     release {
       minifyEnabled false
+      if (keystoreProperties['storeFile']) {
+        signingConfig signingConfigs.release
+      }
       proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
     }
   }

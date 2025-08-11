@@ -1,12 +1,12 @@
 {
-  "versionCode": 2,
-  "versionName": "1.1.0",
-  "downloadUrl": "https://github.com/YOUR_USERNAME/distributor-android-app/releases/download/v1.1.0/distributor-v1.1.0.apk",
-  "releaseNotes": "• Bug fixes and performance improvements\n• Enhanced file upload functionality\n• Better error handling\n• Improved update system",
+  "versionCode": 8,
+  "versionName": "1.2.5",
+  "downloadUrl": "https://github.com/wasimul123/distributor-android-app/releases/download/v1.2.5/app-release.apk",
+  "releaseNotes": "• Enhanced auto-update system\n• Improved file upload reliability\n• Better error handling\n• Performance optimizations\n• Bug fixes and stability improvements",
   "forceUpdate": false,
   "minVersionCode": 1,
-  "updateDate": "2024-01-15",
-  "fileSize": "15.2 MB",
+  "updateDate": "2024-01-16",
+  "fileSize": "4.5 MB",
   "checksum": "sha256:abc123...",
   "compatibility": {
     "minAndroidVersion": "21",
