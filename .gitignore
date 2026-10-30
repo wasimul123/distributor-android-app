@@ -98,3 +98,8 @@ lint/tmp/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Nested live repos (tracked separately)
+web-app/
+android-wt/
+.cursor/
